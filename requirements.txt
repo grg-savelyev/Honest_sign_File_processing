@@ -1,0 +1,9 @@
+pip install openpyxl
+
+-- 08.10.23
+et-xmlfile 1.1.0 - не использовал
+openpyxl   3.1.2
+pip        22.3.1
+setuptools 65.5.1
+wheel      0.38.4
+

@@ -1,38 +1,47 @@
-""" название файла: арт, наименование, цвет, размер """
+from openpyxl import Workbook
+from datetime import datetime
 
+# обработка исходника txt.
+with open('Этикетка обувь (тест).txt', 'r', encoding='utf-8') as shoes:
+    file = shoes.readlines()
 
-def file_name(file):
-    file_information = []
-    lines_to_add = 2  # Сколько следующих строк добавить после удовлетворения условию
+    file_info, lines_to_add = '', 2  # сколько следующих строк добавить после удовлетворения условию
+    codes, total_codes = [], 0
 
     for line in file:
         line = line.strip()
+        # формирование названия файла: арт, наименование, цвет, размер, кол-во кодов
+        if line.isdigit() and len(line) == 5 and line not in file_info:
+            file_info = line
+            lines_to_add = 2  # сбрасываем счётчик при добавлении строки
 
-        if len(line) == 5 and line not in file_information:
-            # it_num = line
-            file_information.append(line)
-            lines_to_add = 2  # Сбрасываем счетчик при добавлении строки
-
-        elif lines_to_add > 0 and line.strip():  # Проверяем, что строка не пустая
-            file_information.append(line)
+        elif lines_to_add > 0 and line.strip():  # сверяем, что строка не пустая
+            file_info = ', '.join([file_info, line])
             lines_to_add -= 1
+        # обработка кода
+        if '(01)0' in line:
+            total_codes += 1
+            line = line.replace('(01)', '01').replace('(21)', '21')
+            codes.append(line)
 
-    return file_information
+# запись в файл в txt
+with open(f"{file_info}, {total_codes}.txt", 'w', encoding='utf-8') as new_file:
+    for code in codes:
+        print(code, file=new_file)  # запись в txt
 
+# запись в excel
+wb = Workbook()
+ws = wb.active  # захватываем активный лист
+num_cell = 1
+for code in codes:
+    cell = 'A' + str(num_cell)
+    ws[cell] = code
+    num_cell += 1
+wb.save(f'{file_info}, {total_codes}.xlsx')
 
-with open('shoes.txt', 'r', encoding='utf-8') as shoes:
-    original_file = shoes.readlines()
-    file_information = ', '.join(file_name(original_file))
+# дата и время создания файла
+dt = (datetime.now().strftime('%d.%m.%y / %H:%M:%S'))
 
-    with open(f"{file_information}.txt", 'w', encoding='utf-8') as new_file:
-        total_codes = 0
-        for line in original_file:
-            if ('(01)0') in line:
-                total_codes += 1
-                line = line.lstrip().rstrip('\n')
-                line = line.replace('(01)', '01').replace('(21)', '21')
-                print(line, file=new_file)
-
-        print()
-        print(f"Файл обработан.\n"
-              f"{file_information} - {total_codes} штук.")
+# вывод итоговой информации о содержании файла
+print(f"Файл обработан. {dt}\n"
+      f"{file_info} - {total_codes} штук.")
