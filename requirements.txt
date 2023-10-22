@@ -7,3 +7,4 @@ pip        22.3.1
 setuptools 65.5.1
 wheel      0.38.4
 
+pip install chardet - 19.10.2023 (фильтр по кодировке файла)
