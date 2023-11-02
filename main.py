@@ -26,7 +26,7 @@ def utf_search(path: str) -> list:
             if encoding.lower() in ('utf-8', 'utf-8-sig'):
                 links.append(txt_file)
                 # извлечения имени файла из ссылки
-                print(f'"{os.path.basename(txt_file)}" внесен в список на обработку.')
+                # print(f'"{os.path.basename(txt_file)}" внесен в список на обработку.')
             else:
                 print(f'Ошибка: Файл "{os.path.basename(txt_file)}" имеет кодировку {encoding}. Обработка отклонена.')
     return links
@@ -36,22 +36,21 @@ def utf_search(path: str) -> list:
 def add_product(item, qr) -> None:
     value_exists = any(qr in values for values in product_dict.values())  # Проверка наличия qr в словаре
     if value_exists:
-        # print(f'Код {qr} повторяется.')
-        qr = qr + ' - повтор кода'
+        print(f'Код {qr} повторяется.')
+        qr = 'ОШИБКА! ' + qr + ' - повтор кода'
     if item in product_dict:
         product_dict[item].append(qr)
     else:
         product_dict[item] = [qr]
 
 
-# CТАРТ ПРОГРАММЫ
+# CТАРТ
 print('Укажите путь к папке для обработки:')
 folder_path = input()  # указываем путь на каталог
 product_dict = {}  # словарь, где k название файла, v список кодов
 start_time = time.perf_counter()  # контроль времени, старт обработки
 good_links: list = utf_search(folder_path)  # ссылки на файлы соответствующие utf-8
-print()
-print('Запуск обработки.')
+print('Запуск обработки. \n')
 
 # Обработка файла txt
 for link in good_links:
@@ -79,28 +78,22 @@ for link in good_links:
                 total_codes += 1
                 line = line.replace('(01)', '01').replace('(21)', '21')
                 add_product(character, line)
-    print(f'"{os.path.basename(link)}" обработан.')
 
 # дата и время создания файла
 dt = (datetime.now().strftime('%d.%m.%y / %H:%M:%S'))
 
-# ДОРАБОТАТЬ ОТЧЕТ!!!
-# если найдено более 1 модели, то запись в отчет.
-# if len([k for k in product_dict.keys()]) > 1:
-#     print('ВАЖНО! В исходнике найдено более 1 модели! Смотри отчет.txt')
-#     with open(f'Отчет.txt', 'w', encoding='utf-8') as new_file:
-#         print(f'{dt}\n', file=new_file)
-#         for k, v in product_dict.items():
-#             print(f'    {k} - {len(v)} шт.', file=new_file)
-#             print('\n'.join(v), file=new_file)
-
+name_file = ", ".join(character.split(", ")[:2])  # Имя файла: арт, продукт
 sum_total_qr = sum(len(value) for value in product_dict.values())  # Общее количество собранных qr
 
-"""
-запись в excel в 1 столбец и не зависит от кол-ва моделей.
-См. отчет.
-Если в исходнике нескольких моделей, название файла по последнему найденному и сумме QR кодов.
-"""
+# запись финального словаря в txt
+with open(f'{name_file}, {sum_total_qr}', 'w', encoding='utf-8') as new_file:
+    print(f'{dt}\n', file=new_file)
+    for key, value in product_dict.items():
+        print(f'{key}', file=new_file)
+        for v in value:
+            print(f'{v}', file=new_file)
+
+# запись в excel в 1 столбец
 wb = Workbook()
 ws = wb.active  # захватываем активный лист
 num_cell = 1
@@ -109,18 +102,17 @@ for k, v in product_dict.items():
         cell = 'A' + str(num_cell)
         ws[cell] = code
         num_cell += 1
-wb.save(f'{", ".join(character.split(", ")[:2])}, {sum_total_qr}.xlsx')  # имя файла xlsx
+wb.save(f'{name_file}, {sum_total_qr}.xlsx')  # имя файла xlsx
 
-# вывод итоговой информации о содержании файла
-print()
-print('Итог:')
+# вывод итоговой информации
+print('-' * 10)
 for k, v in product_dict.items():
     print(f'{k} - {len(v)} шт.')
-print(f'Файл обработан {dt}')
+print('-' * 10)
+print(f'Итог: {sum_total_qr} кодов обработано')
+print(f'Дата и время: {dt}')
 
 # вывод времени обработки файла
 end_time = time.perf_counter()
 elapsed_time = end_time - start_time
-print(f'Время работы программы = {elapsed_time}')
-
-# pprint(product_dict)
+print(f'Скорость обработки: {elapsed_time}')
