@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import chardet
 import codecs
+import re
 
 FOLDER_PATH = ''  # путь на директорию
 LINKS_NOT_FORMAT = []  # файлы не utf-8
@@ -109,6 +110,11 @@ def file_processing():  # Обработка файла txt
     FILE_NAME = ", ".join(character.split(", ")[:2])
 
 
+def replace_special_chars() -> None:
+    global FILE_NAME
+    FILE_NAME = re.sub(r'[:\\?#]', '_', FILE_NAME)
+
+
 def record_report():  # запись отчета в txt
     global TOTAL_QR_CODES
     global DATE_OF_PROCESSING
@@ -161,6 +167,7 @@ def output_of_results():  # вывод итоговой информации
 def main():
     input_path()
     file_processing()
+    replace_special_chars()
     record_report()
     record_excel()
     output_of_results()
